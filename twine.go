@@ -14,7 +14,7 @@ import (
 )
 
 type twineCipher struct {
-	rk [37][8]byte // 36+1 to keep the indexes nice
+	rk [36][8]byte
 }
 
 type KeySizeError int
@@ -55,7 +55,7 @@ func (t *twineCipher) Encrypt(dst, src []byte) {
 		x[2*i+1] = src[i] & 0x0f
 	}
 
-	for i := 1; i <= 35; i++ {
+	for i := 0; i < 35; i++ {
 		for j := 0; j < 8; j++ {
 			x[2*j+1] ^= sbox[x[2*j]^t.rk[i][j]]
 		}
@@ -68,7 +68,7 @@ func (t *twineCipher) Encrypt(dst, src []byte) {
 	}
 
 	// last round
-	i := 36
+	i := 35
 	for j := 0; j < 8; j++ {
 		x[2*j+1] ^= sbox[x[2*j]^t.rk[i][j]]
 	}
@@ -87,7 +87,7 @@ func (t *twineCipher) Decrypt(dst, src []byte) {
 		x[2*i+1] = src[i] & 0x0f
 	}
 
-	for i := 36; i >= 2; i-- {
+	for i := 35; i >= 1; i-- {
 		for j := 0; j < 8; j++ {
 			x[2*j+1] ^= sbox[x[2*j]^t.rk[i][j]]
 		}
@@ -100,7 +100,7 @@ func (t *twineCipher) Decrypt(dst, src []byte) {
 	}
 
 	// last round
-	i := 1
+	i := 0
 	for j := 0; j < 8; j++ {
 		x[2*j+1] ^= sbox[x[2*j]^t.rk[i][j]]
 	}
@@ -119,7 +119,7 @@ func (t *twineCipher) expandKeys80(key []byte) {
 		wk[2*i+1] = key[i] & 0x0f
 	}
 
-	for i := 1; i <= 35; i++ {
+	for i := 0; i < 35; i++ {
 
 		t.rk[i][0] = wk[1]
 		t.rk[i][1] = wk[3]
@@ -151,14 +151,14 @@ func (t *twineCipher) expandKeys80(key []byte) {
 		wk[19] = tmp0
 	}
 
-	t.rk[36][0] = wk[1]
-	t.rk[36][1] = wk[3]
-	t.rk[36][2] = wk[4]
-	t.rk[36][3] = wk[6]
-	t.rk[36][4] = wk[13]
-	t.rk[36][5] = wk[14]
-	t.rk[36][6] = wk[15]
-	t.rk[36][7] = wk[16]
+	t.rk[35][0] = wk[1]
+	t.rk[35][1] = wk[3]
+	t.rk[35][2] = wk[4]
+	t.rk[35][3] = wk[6]
+	t.rk[35][4] = wk[13]
+	t.rk[35][5] = wk[14]
+	t.rk[35][6] = wk[15]
+	t.rk[35][7] = wk[16]
 
 }
 
@@ -171,7 +171,7 @@ func (t *twineCipher) expandKeys128(key []byte) {
 		wk[2*i+1] = key[i] & 0x0f
 	}
 
-	for i := 1; i <= 35; i++ {
+	for i := 0; i < 35; i++ {
 
 		t.rk[i][0] = wk[2]
 		t.rk[i][1] = wk[3]
@@ -203,14 +203,14 @@ func (t *twineCipher) expandKeys128(key []byte) {
 		wk[30] = tmp3
 		wk[31] = tmp0
 	}
-	t.rk[36][0] = wk[2]
-	t.rk[36][1] = wk[3]
-	t.rk[36][2] = wk[12]
-	t.rk[36][3] = wk[15]
-	t.rk[36][4] = wk[17]
-	t.rk[36][5] = wk[18]
-	t.rk[36][6] = wk[28]
-	t.rk[36][7] = wk[31]
+	t.rk[35][0] = wk[2]
+	t.rk[35][1] = wk[3]
+	t.rk[35][2] = wk[12]
+	t.rk[35][3] = wk[15]
+	t.rk[35][4] = wk[17]
+	t.rk[35][5] = wk[18]
+	t.rk[35][6] = wk[28]
+	t.rk[35][7] = wk[31]
 }
 
 // table 1
@@ -222,7 +222,6 @@ var shufinv = []int{1, 2, 11, 6, 3, 0, 9, 4, 7, 10, 13, 14, 5, 8, 15, 12}
 
 // table 3
 var roundconst = []byte{
-	0x00, // filler
 	0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x03, 0x06, 0x0c, 0x18, 0x30, 0x23, 0x05, 0x0a, 0x14, 0x28, 0x13, 0x26,
 	0x0f, 0x1e, 0x3c, 0x3b, 0x35, 0x29, 0x11, 0x22, 0x07, 0x0e, 0x1c, 0x38, 0x33, 0x25, 0x09, 0x12, 0x24, 0x0b,
 }
